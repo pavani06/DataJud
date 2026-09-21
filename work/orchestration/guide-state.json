@@ -1,7 +1,10 @@
 {
   "epic": 8,
-  "issues": {"authoring": 9, "review": 10},
-  "status": "review-passed-awaiting-publication",
+  "issues": {
+    "authoring": 9,
+    "review": 10
+  },
+  "status": "complete",
   "producer": "root",
   "reviewer": "evidence",
   "push_mode": "autonomous-approved",
@@ -10,8 +13,34 @@
   "review": {
     "result": "PASS",
     "report": "work/orchestration/support/guide-review.md",
-    "checks": ["CLI help/health", "HTTP health offline", "UTF-8 capture and byte-exact copy: PowerShell 5.1 and 7", "local links and anchors", "PowerShell block syntax", "runtime unchanged"],
+    "checks": [
+      "CLI help/health",
+      "HTTP health offline",
+      "UTF-8 capture and byte-exact copy: PowerShell 5.1 and 7",
+      "local links and anchors",
+      "PowerShell block syntax",
+      "runtime unchanged"
+    ],
     "live_queries_added": 0
   },
-  "previous_epic": {"number": 1, "status": "closed", "receipts": "preserved"}
+  "previous_epic": {
+    "number": 1,
+    "status": "closed",
+    "receipts": "preserved"
+  },
+  "publication": {
+    "commit": "fcd94879f1e166ff6b83c35696e5dd80cae697b4",
+    "guide": "https://github.com/pavani06/DataJud/blob/main/docs/GUIA_DE_USO.md",
+    "issue_states": {
+      "8": "CLOSED",
+      "9": "CLOSED",
+      "10": "CLOSED"
+    },
+    "handoffs": {
+      "8": "https://github.com/pavani06/DataJud/issues/8#issuecomment-5766510315",
+      "9": "https://github.com/pavani06/DataJud/issues/9#issuecomment-5766508054",
+      "10": "https://github.com/pavani06/DataJud/issues/10#issuecomment-5766509309"
+    },
+    "readback": "issue bodies, handoff comments and closed states verified"
+  }
 }
