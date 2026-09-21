@@ -7,6 +7,10 @@ normalizados e a origem verificável de cada consulta.
 Não é buscador full-text de jurisprudência, fonte garantida de inteiro teor, RAG,
 MCP, agente ou substituto dos sistemas dos tribunais. Não faz análise jurídica.
 
+**Comece pelo [guia de uso com exemplos e prompts](docs/GUIA_DE_USO.md)**:
+terminal (PowerShell/Bash/CMD), Claude, ChatGPT, Claude Code, Codex, OpenCode,
+PI e Herdr; inclui exportação de JSON, reextração offline e HTTP local.
+
 ## Quick start
 
 Requisitos: Python 3.12+ e [uv](https://docs.astral.sh/uv/getting-started/installation/).

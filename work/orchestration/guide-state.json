@@ -1,0 +1,17 @@
+{
+  "epic": 8,
+  "issues": {"authoring": 9, "review": 10},
+  "status": "review-passed-awaiting-publication",
+  "producer": "root",
+  "reviewer": "evidence",
+  "push_mode": "autonomous-approved",
+  "plan": ".omo/plans/2026-09-21-datajud-usage-guide.md",
+  "scope": "documentation-only",
+  "review": {
+    "result": "PASS",
+    "report": "work/orchestration/support/guide-review.md",
+    "checks": ["CLI help/health", "HTTP health offline", "UTF-8 capture and byte-exact copy: PowerShell 5.1 and 7", "local links and anchors", "PowerShell block syntax", "runtime unchanged"],
+    "live_queries_added": 0
+  },
+  "previous_epic": {"number": 1, "status": "closed", "receipts": "preserved"}
+}
