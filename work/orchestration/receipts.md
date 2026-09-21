@@ -4,6 +4,11 @@ Objetivo entregue: SEARCH → DISCOVER → EXTRACT → PRESERVE PROVENANCE sobre
 Versão: datajud-lite 0.1.0; snapshot exato e hashes em `support/acceptance.json`.
 Repositório privado: https://github.com/pavani06/DataJud ; épico #1, issues #2–#7.
 
+Estado corrente: **concluído**; épico e seis issues fechados após handoff e read-back.
+Commit de implementação publicado: `37ee2f2541acc223c26c0fe8eea1051932194750`.
+Timestamp exato do encerramento: evento T006 em state.json. A seção de próxima
+transição abaixo preserva o recibo de validação pré-publicação; essa transição foi executada.
+
 ## Entregas e independência
 
 | Entrega | Produtor | Revisor independente | Disposição |

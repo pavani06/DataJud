@@ -120,3 +120,12 @@ Company/party recebem unsupported_filter explícito. Inglês (subject/class/move
 é alias de entrada, sem renomear mecanicamente campos normalizados já existentes.
 CandidateProcess será contrato documental simples versionado; sem adapter futuro implementado.
 Critérios/arquivos finais e mudança de ownership serão refletidos em state/issues.
+
+## Carimbo de execução e fechamento — 2026-09-21
+
+Plano executado com delta T002 preservado. Código publicado em `37ee2f2541acc223c26c0fe8eea1051932194750`.
+Épico #1 e issues #2–#7 fechados com handoffs após revisão independente e revalidação
+dos findings R1/RCD-01/RCD-02. Critérios originais A–I e corrigidos A/B/C demonstrados.
+`work/orchestration/state.json` é o estado corrente; `support/acceptance.json` contém
+contagens regeneradas e hashes. Histórico de revisão preservado; nenhuma pendência
+P0/P1 ou finding funcional aberto. Não há execução futura agendada.

@@ -6,6 +6,7 @@ No network, deletion, Git mutation or access to credentials.
 from datetime import datetime, timezone
 import hashlib
 import json
+import sys
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
@@ -101,7 +102,12 @@ report = {
     'source_files': source_hashes,
 }
 output = SUPPORT / 'acceptance.json'
-output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+if '--check-only' in sys.argv:
+    previous = load(output)
+    for field in ('source_sha256', 'tests', 'test_report_sha256', 'live_report_sha256', 'review_reports'):
+        assert previous[field] == report[field], f'Accepted evidence changed: {field}'
+else:
+    output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 print(json.dumps({'tests': counts, 'source_sha256': source_digest, 'acceptance_sha256': sha(output),
                   'verified_raw_count': len(verified), 'discovery_candidates': manifest['count'],
                   'discovery_pages': len(manifest['pages']), 'state_consistent': True}, ensure_ascii=False))
