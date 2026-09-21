@@ -1,0 +1,81 @@
+{
+  "owner": "root",
+  "repo": "pavani06/DataJud",
+  "push_mode": "autonomous-approved",
+  "phase": "verification",
+  "iteration": 1,
+  "canonical_plan_path": ".omo/plans/2026-09-21-qi-loop-datajud.md",
+  "issues": {
+    "core": {
+      "number": 2,
+      "status": "in_progress",
+      "owner": "core"
+    },
+    "evidence": {
+      "number": 3,
+      "status": "in_progress",
+      "owner": "evidence"
+    },
+    "interfaces": {
+      "number": 4,
+      "status": "in_progress",
+      "owner": "root"
+    },
+    "validation": {
+      "number": 5,
+      "status": "in_progress",
+      "owner": "api_research"
+    },
+    "discovery": {
+      "number": 6,
+      "status": "in_progress",
+      "owner": "root"
+    },
+    "offline": {
+      "number": 7,
+      "status": "in_progress",
+      "owner": "evidence+root"
+    }
+  },
+  "events": [
+    {
+      "id": "T001-issues-published",
+      "at": "2026-09-21T18:38:26.040559+00:00",
+      "phase": "implementation"
+    },
+    {
+      "id": "T002-scope-correction",
+      "at": "2026-09-21T18:46:11.066085+00:00",
+      "phase": "implementation"
+    },
+    {
+      "id": "T003-review-delta-verified",
+      "at": "2026-09-21T19:00:59.043655+00:00",
+      "phase": "verification"
+    }
+  ],
+  "findings": [
+    {
+      "id": "R1",
+      "severity": "P2",
+      "status": "resolved",
+      "issue": 4,
+      "correction": "RecursionError becomes structured extraction_error with preserved raw"
+    },
+    {
+      "id": "RCD-01",
+      "severity": "P2",
+      "status": "resolved",
+      "issue": 6,
+      "correction": "Oversized upstream page rejected after raw preservation"
+    },
+    {
+      "id": "RCD-02",
+      "severity": "P2",
+      "status": "resolved",
+      "issue": 6,
+      "correction": "Incomplete identity falls back to source hash preserving degree"
+    }
+  ],
+  "epic": 1
+}

@@ -1,0 +1,196 @@
+{
+  "started_at": "2026-09-21T18:51:53.834636Z",
+  "status": "success",
+  "checks": {
+    "canary": {
+      "query_status": "success",
+      "count": 1,
+      "total": {
+        "value": 10000,
+        "relation": "gte"
+      },
+      "raw_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\raw\\TJSP_20260921T184432314504Z_aa61ff642285b1cdb5ef9895b5904b59c42df225c8895ac6248503c418e751e7_74a2c8a0fc014494bfe75a7cb3227ad0.json",
+      "extracted_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\extracted\\TJSP_20260921T184432314504Z_aa61ff642285b1cdb5ef9895b5904b59c42df225c8895ac6248503c418e751e7_74a2c8a0fc014494bfe75a7cb3227ad0.json",
+      "raw_sha256": "aa61ff642285b1cdb5ef9895b5904b59c42df225c8895ac6248503c418e751e7",
+      "provenance_verified": true
+    },
+    "by_number": {
+      "query_status": "success",
+      "count": 1,
+      "total": {
+        "value": 4,
+        "relation": "eq"
+      },
+      "raw_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\raw\\TJSP_20260921T184452075394Z_bacae65f3d9a1801f53925746e6b513244a9233a4baaa0ed82fc90c8f71e906c_39850e2f2b3345fa8f60f18daec2d733.json",
+      "extracted_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\extracted\\TJSP_20260921T184452075394Z_bacae65f3d9a1801f53925746e6b513244a9233a4baaa0ed82fc90c8f71e906c_39850e2f2b3345fa8f60f18daec2d733.json",
+      "raw_sha256": "bacae65f3d9a1801f53925746e6b513244a9233a4baaa0ed82fc90c8f71e906c",
+      "provenance_verified": true
+    },
+    "date_range": {
+      "query_status": "success",
+      "count": 1,
+      "total": {
+        "value": 1,
+        "relation": "eq"
+      },
+      "raw_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\raw\\TJSP_20260921T184505142515Z_bd0d615655662c4d42a25d745065d9bdeae255ec53951905b2c60b9ff424eb35_9cc1d1d3e9974ec28b0645eb234ee603.json",
+      "extracted_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\extracted\\TJSP_20260921T184505142515Z_bd0d615655662c4d42a25d745065d9bdeae255ec53951905b2c60b9ff424eb35_9cc1d1d3e9974ec28b0645eb234ee603.json",
+      "raw_sha256": "bd0d615655662c4d42a25d745065d9bdeae255ec53951905b2c60b9ff424eb35",
+      "provenance_verified": true
+    },
+    "cli_json": {
+      "query_status": "success",
+      "count": 1,
+      "total": {
+        "value": 4,
+        "relation": "eq"
+      },
+      "raw_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\raw\\TJSP_20260921T184530849431Z_6a04361df15800a520451e4f87e1d9674fb13a682fc84291c27a1d2990382442_0611b275d9fd49df8330f3562be91227.json",
+      "extracted_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\extracted\\TJSP_20260921T184530849431Z_6a04361df15800a520451e4f87e1d9674fb13a682fc84291c27a1d2990382442_0611b275d9fd49df8330f3562be91227.json",
+      "raw_sha256": "6a04361df15800a520451e4f87e1d9674fb13a682fc84291c27a1d2990382442",
+      "provenance_verified": true
+    },
+    "cli_raw": {
+      "valid_upstream_json": true,
+      "bytes_match_persisted_raw": true
+    },
+    "http": {
+      "query_status": "success",
+      "count": 1,
+      "total": {
+        "value": 4,
+        "relation": "eq"
+      },
+      "raw_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\raw\\TJSP_20260921T184614636142Z_c1907dc19fa6f12831c3f5d40056f5876e40de6e73b08829aec3044378628555_fb54a4059d154cc38a622ef9832a7f69.json",
+      "extracted_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\extracted\\TJSP_20260921T184614636142Z_c1907dc19fa6f12831c3f5d40056f5876e40de6e73b08829aec3044378628555_fb54a4059d154cc38a622ef9832a7f69.json",
+      "raw_sha256": "c1907dc19fa6f12831c3f5d40056f5876e40de6e73b08829aec3044378628555",
+      "provenance_verified": true,
+      "health_http_status": 200,
+      "search_http_status": 200
+    },
+    "process_inferred": {
+      "query_status": "success",
+      "count": 4,
+      "total": {
+        "value": 4,
+        "relation": "eq"
+      },
+      "raw_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\raw\\TJSP_20260921T185202629788Z_dbfd5c78489b849926287afe8f10d32facab12ae4b265021cd6a93865526bca9_97ccd000382e4f2cb62980932a0c35ce.json",
+      "extracted_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\extracted\\TJSP_20260921T185202629788Z_dbfd5c78489b849926287afe8f10d32facab12ae4b265021cd6a93865526bca9_97ccd000382e4f2cb62980932a0c35ce.json",
+      "raw_sha256": "dbfd5c78489b849926287afe8f10d32facab12ae4b265021cd6a93865526bca9",
+      "provenance_verified": true
+    },
+    "discovery": {
+      "query_status": "success",
+      "count": 3,
+      "page_count": 3,
+      "manifest_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\extracted\\discovery_b780faa2fc9d4f328c4d0fe91e00e972_20260921T185233571019Z_9e59aef4969d4101b01a077d31ca69cb.json",
+      "filters_verified": true,
+      "pages": [
+        {
+          "query_status": "success",
+          "count": 1,
+          "total": {
+            "value": 113,
+            "relation": "eq"
+          },
+          "raw_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\raw\\TJSP_20260921T185210271345Z_dfd9ced3626a0318049eb33ae0f4cc5f9be2fe0babe6ce9c6b451f22705e14ad_850da707f5254bdc869aaaa7e320336a.json",
+          "extracted_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\extracted\\TJSP_20260921T185210271345Z_dfd9ced3626a0318049eb33ae0f4cc5f9be2fe0babe6ce9c6b451f22705e14ad_850da707f5254bdc869aaaa7e320336a.json",
+          "raw_sha256": "dfd9ced3626a0318049eb33ae0f4cc5f9be2fe0babe6ce9c6b451f22705e14ad",
+          "provenance_verified": true
+        },
+        {
+          "query_status": "success",
+          "count": 1,
+          "total": {
+            "value": 113,
+            "relation": "eq"
+          },
+          "raw_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\raw\\TJSP_20260921T185215260308Z_e06f04917c31ae8af096248adb61d84b5a49cec56b6ffc102eeeaf9cd90a9d89_35f5d7bb4a3e4d88b00000a6ed69a1f5.json",
+          "extracted_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\extracted\\TJSP_20260921T185215260308Z_e06f04917c31ae8af096248adb61d84b5a49cec56b6ffc102eeeaf9cd90a9d89_35f5d7bb4a3e4d88b00000a6ed69a1f5.json",
+          "raw_sha256": "e06f04917c31ae8af096248adb61d84b5a49cec56b6ffc102eeeaf9cd90a9d89",
+          "provenance_verified": true
+        },
+        {
+          "query_status": "success",
+          "count": 1,
+          "total": {
+            "value": 113,
+            "relation": "eq"
+          },
+          "raw_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\raw\\TJSP_20260921T185233532816Z_cb4bc63a129a00a1cddb61a0a0c8eed437d826a998a0c4227a43c1057223d55f_95147a3d87b24f6abfe098e1fa6b691c.json",
+          "extracted_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\extracted\\TJSP_20260921T185233532816Z_cb4bc63a129a00a1cddb61a0a0c8eed437d826a998a0c4227a43c1057223d55f_95147a3d87b24f6abfe098e1fa6b691c.json",
+          "raw_sha256": "cb4bc63a129a00a1cddb61a0a0c8eed437d826a998a0c4227a43c1057223d55f",
+          "provenance_verified": true
+        }
+      ],
+      "discovery": {
+        "query_id": "b780faa2fc9d4f328c4d0fe91e00e972",
+        "filters": {
+          "tribunal": "TJSP",
+          "classe": 386,
+          "date_from": "2020-06-02",
+          "date_to": "2020-06-02"
+        },
+        "created_at": "2026-09-21T18:52:33.565498Z",
+        "returned_hits": 3,
+        "pagination": {
+          "limit": 3,
+          "page_size": 1,
+          "pages": 3,
+          "max_pages": 100,
+          "duplicates_removed": 0,
+          "stop_reason": "limit",
+          "next_search_after": [
+            1727323053188
+          ],
+          "complete_snapshot": false
+        }
+      }
+    },
+    "movement": {
+      "query_status": "success",
+      "count": 1,
+      "total": {
+        "value": 4,
+        "relation": "eq"
+      },
+      "raw_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\raw\\TJSP_20260921T185234966749Z_21c0c2a8ce1aa4db1cd10658a64502e405de2c6344d20d979fe749a27de33db4_326810a94f7f41f6aed67e329c14ccce.json",
+      "extracted_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\extracted\\TJSP_20260921T185234966749Z_21c0c2a8ce1aa4db1cd10658a64502e405de2c6344d20d979fe749a27de33db4_326810a94f7f41f6aed67e329c14ccce.json",
+      "raw_sha256": "21c0c2a8ce1aa4db1cd10658a64502e405de2c6344d20d979fe749a27de33db4",
+      "provenance_verified": true,
+      "movement_code": 982
+    },
+    "offline_extract": {
+      "query_status": "success",
+      "count": 4,
+      "total": {
+        "value": 4,
+        "relation": "eq"
+      },
+      "raw_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\raw\\TJSP_20260921T185202629788Z_dbfd5c78489b849926287afe8f10d32facab12ae4b265021cd6a93865526bca9_97ccd000382e4f2cb62980932a0c35ce.json",
+      "extracted_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\extracted\\TJSP_20260921T185202629788Z_dbfd5c78489b849926287afe8f10d32facab12ae4b265021cd6a93865526bca9_extract_beb14bd9207e4b54ae838dc725f6a1be.json",
+      "raw_sha256": "dbfd5c78489b849926287afe8f10d32facab12ae4b265021cd6a93865526bca9",
+      "provenance_verified": true,
+      "no_api_key": true,
+      "network_search_forbidden": true,
+      "original_raw_unchanged": true
+    }
+  },
+  "sample": {
+    "numero_processo": "00182260520208260050",
+    "tribunal": "TJSP",
+    "grau": "G1",
+    "classe": {
+      "codigo": 386,
+      "nome": "Execução da Pena"
+    },
+    "data_ajuizamento": "2020-06-02T14:53:02.000Z"
+  },
+  "previous_live_run": {
+    "started_at": "2026-09-21T18:44:15.778656Z",
+    "finished_at": "2026-09-21T18:46:14.663464Z",
+    "status": "success"
+  },
+  "finished_at": "2026-09-21T18:52:35.048542Z"
+}

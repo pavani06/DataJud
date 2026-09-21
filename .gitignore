@@ -1,0 +1,20 @@
+.env
+.env.*
+!.env.example
+.venv/
+.tools/
+.uv-cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+data/
+work/orchestration/support/logs/
+work/orchestration/support/skills/
+# Generated GitHub bodies remain local; issues and the canonical plan are authoritative.
+work/orchestration/support/issue-*.md
+work/orchestration/support/updated-*.md
+work/orchestration/support/epic*.md
