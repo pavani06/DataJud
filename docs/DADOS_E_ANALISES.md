@@ -51,7 +51,7 @@ inventa valores: campo ausente na fonte fica ausente no registro.
 | Campo normalizado | Campo na fonte | Tipo | Significado segundo o glossário oficial | Observações |
 | --- | --- | --- | --- | --- |
 | `numero_processo` | `numeroProcesso` | texto | Numeração única CNJ sem formatação | 20 dígitos. Trate como texto para preservar zeros iniciais. |
-| `tribunal` | `tribunal` | texto | Sigla do tribunal | Coincide com o alias consultado. |
+| `tribunal` | `tribunal` | texto | Sigla do tribunal | Coincide com a sigla consultada (`provenance.tribunal`). |
 | `grau` | `grau` | texto | Instância: `G1`, `G2`, `JE` etc. | |
 | `classe` | `classe` | objeto `{codigo, nome}` | Classe processual conforme TPU | Ver seção 5. |
 | `assuntos` | `assuntos` | lista de `{codigo, nome}` | Assuntos do processo conforme TPU | O extrator achata listas aninhadas em uma lista simples. |
@@ -60,15 +60,15 @@ inventa valores: campo ausente na fonte fica ausente no registro.
 | `data_hora_ultima_atualizacao` | `dataHoraUltimaAtualizacao` | data e hora | Controle interno: instante de inserção do dado na origem | Indica qual registro é o mais recente. |
 | `timestamp` | `@timestamp` | data e hora | Controle interno: atualização do documento no índice | Chave de ordenação e paginação. Não é data processual. |
 | `nivel_sigilo` | `nivelSigilo` | inteiro | Nível de sigilo | Observado sempre `0` nos registros consultados. |
-| `sistema` | `sistema` | objeto `{codigo, nome}` | Sistema processual de origem no tribunal | Observado `SAJ` (código 3) no TJSP. |
+| `sistema` | `sistema` | objeto `{codigo, nome}` | Sistema processual de origem no tribunal | Observado `SAJ` (código 3) no TJSP e também `Inválido` (código -1) em candidatos da descoberta. |
 | `formato` | `formato` | objeto `{codigo, nome}` | Processo físico ou eletrônico | |
 | `id` | `id` | texto | Chave `Tribunal_Classe_Grau_OrgaoJulgador_NumeroProcesso` | Ver seção 6. |
 | `movimentos` | `movimentos` | lista | Movimentos processuais | Estrutura na seção 4. |
 | `extra_fields` | qualquer outro | objeto | Campos da fonte fora da lista acima | Só existe quando a fonte enviar algo não previsto. |
 | `provenance` | gerado localmente | objeto | Fonte, tribunal, alias e endpoint, `retrieved_at`, query enviada, `raw_sha256`, `raw_file`, `datajud_id`, `datajud_index` | `datajud_id` e `datajud_index` vêm de `_id` e `_index` do hit. |
 
-O glossário não lista `sistema` e `formato` como obrigatórios nem garante a presença
-de todos os campos em todos os tribunais. Leia o que veio; não presuma o que faltou.
+O glossário não marca nenhum campo como obrigatório nem garante a presença de todos
+os campos em todos os tribunais. Leia o que veio; não presuma o que faltou.
 
 ## 3. Campos do envelope da consulta
 
@@ -76,20 +76,22 @@ O envelope é o que a CLI imprime com `--json` e o que as rotas HTTP devolvem.
 
 | Campo | Significado |
 | --- | --- |
-| `query_status` | `success` ou `error`. Em erro, há `error.code` e `error.message`. |
+| `query_status` | `success` ou `error`. Em erro, há `error.code` e `error.message`; podem existir `error.upstream_status`, `error.raw_path` e `error.provenance`, ou `error.details` quando o corpo HTTP é inválido. |
+| `source`, `tribunal` | `CNJ/DataJud` e a sigla consultada. Presentes em todos os envelopes. |
 | `found` | `true` quando houve ao menos um hit. |
 | `count` | Registros nesta página ou candidatos distintos na descoberta. Não é número de processos únicos. |
 | `total` | `{value, relation}` informado pela fonte. `eq` é total exato; `gte` é limite inferior. |
 | `results` | Registros normalizados da seção 2. |
-| `next_search_after` | Cursor para a próxima página de `search`; ausente quando não há. |
-| `warnings` | Avisos do serviço. A nota de paginação sem snapshot está sempre presente. |
+| `next_search_after` | Cursor da próxima página em `search` e `process`; `null` quando não há. Ausente em `extract <raw-file>`; em `discover`, fica em `discovery.pagination`. |
+| `warnings` | Avisos do serviço. Em `search` e `process` inclui sempre a nota de paginação sem snapshot; em `discover`, a nota de que o conjunto é uma seleção de candidatos; em `extract <raw-file>`, vazio quando há resultados. |
 | `tribunal_resolution` | Só em `process`: `method` (`provided` ou `cnj_origin`), `tribunal`, `process_number`, `note`. |
 | `raw_path`, `extracted_path` | Arquivos gravados desta consulta. |
 | `provenance` | Proveniência do envelope, igual à de cada registro sem `datajud_id`/`datajud_index`. |
 | `extracted_at`, `mode` | Só em `extract <raw-file>`: instante da reextração e `offline`. |
 
 A descoberta acrescenta `schema_version` (`candidate-process-set/1`), `pages` (uma
-entrada por página, com raw, proveniência e candidatos), `manifest_path` e o bloco
+entrada por página, com `raw_path`, `extracted_path`, `provenance` e `count`; os
+candidatos ficam só em `results`), `manifest_path` e o bloco
 `discovery` com `query_id`, `filters`, `created_at`, `returned_hits` e `pagination`
 (`limit`, `page_size`, `pages`, `max_pages`, `duplicates_removed`, `stop_reason`,
 `next_search_after`, `complete_snapshot`, sempre `false`).
@@ -119,7 +121,7 @@ observados na fonte:
 | `complementosTabelados[]` | Lista de complementos daquele movimento | Nem todo movimento tem complementos. |
 | `complementosTabelados[].codigo`, `.descricao` | Código e descrição da **variável** do movimento | Exemplo: 18, `motivo_da_remessa`. |
 | `complementosTabelados[].valor`, `.nome` | Código e descrição do **valor** do complemento | Exemplo: 40, `outros motivos`. |
-| `orgaoJulgador` | Órgão julgador do movimento | Glossário nomeia `codigoOrgao` e `nomeOrgao`; observado `codigo` e `nome`, com `codigo` como texto. Presente só em registros mais recentes. |
+| `orgaoJulgador` | Órgão julgador do movimento | Glossário nomeia `codigoOrgao` e `nomeOrgao`; observado `codigo` e `nome`, com `codigo` como texto. Observado em apenas um dos quatro registros do exemplo, o mais recente; não presuma o campo. |
 
 Variáveis de complemento observadas em 21/09/2026: `motivo_da_remessa`,
 `tipo_de_documento` (certidão, ofício, mandado, outros documentos),
@@ -128,7 +130,8 @@ Variáveis de complemento observadas em 21/09/2026: `motivo_da_remessa`,
 está na tabela de movimentos do CNJ (seção 5).
 
 Não presuma que a lista vem em ordem cronológica: ordene por `dataHora`. Observado:
-o mesmo movimento repetido no mesmo instante (dois "Recebimento" idênticos).
+até 11 cópias integralmente idênticas de um mesmo Recebimento ou Remessa, com código,
+nome, `dataHora` e complementos iguais.
 
 ## 5. Códigos: onde consultar e como não errar
 
@@ -153,25 +156,27 @@ pelo código, sem depender da grafia do `nome`. Regras práticas:
 ## 6. Vários registros para um mesmo número
 
 Pelo glossário, o `id` do registro é a chave
-`Tribunal_Classe_Grau_OrgaoJulgador_NumeroProcesso`. O DataJud guarda, portanto, um
+`Tribunal_Classe_Grau_OrgaoJulgador_NumeroProcesso`. Em regra, o DataJud guarda um
 documento por combinação dessas partes. Um processo que tramitou em mais de um órgão,
 mudou de classe ou subiu de instância aparece mais de uma vez na mesma consulta,
-e `count` conta esses registros, não processos.
+e `count` conta esses registros, não processos. A observação abaixo mostra que essa
+chave não é única em todos os casos.
 
 Como distinguir os registros de um mesmo número:
 
 | Para saber | Olhe |
 | --- | --- |
-| Qual órgão indexou o registro | `orgao_julgador.codigo` e o trecho correspondente de `provenance.datajud_id` |
+| Qual registro é qual | `provenance.datajud_id`, igual a `id`. `orgao_julgador.codigo` não é único entre registros do mesmo número. |
 | Qual instância e classe | `grau` e `classe.codigo` |
 | Qual é o mais recente | maior `data_hora_ultima_atualizacao`; `timestamp` é a indexação |
 | Se são o mesmo processo | `numero_processo` idêntico e `data_ajuizamento` compatível |
 
 Observado em 21/09/2026 no processo público usado como exemplo no README: 4 registros
-com o mesmo número, classe, grau e ajuizamento, cada um sob um órgão julgador
-diferente e com atualizações entre 2023 e 2026. Um dos ids não seguia o padrão do
-glossário: tinha a forma `TJSP_G1_<número>`, sem classe nem órgão, e era o registro
-mais recente. Não presuma que o registro com mais movimentos é o atual; compare datas.
+com o mesmo número, classe, grau e ajuizamento, sob 3 órgãos julgadores distintos,
+com atualizações entre 2023 e 2026. Dois registros compartilhavam o mesmo órgão e se
+distinguiam apenas pelo formato do id: um no padrão do glossário e outro na forma
+`TJSP_G1_<número>`, sem classe nem órgão, que era o registro mais recente. Não
+presuma que o registro com mais movimentos é o atual; compare datas.
 
 Um mesmo número também pode existir em outro tribunal, por recurso ou redistribuição.
 `process` sem `--tribunal` consulta apenas o tribunal de origem codificado na
@@ -242,14 +247,16 @@ e a ferramenta não a faz.
 - **Documentos expedidos por tipo.** O complemento `tipo_de_documento` diz se foi
   certidão, ofício ou mandado, sem o documento em si.
 - **Mudanças ao longo do tempo.** Reconsultar o mesmo número e comparar
-  `data_hora_ultima_atualizacao`, a quantidade de movimentos e o `raw_sha256` da
-  proveniência revela se algo mudou desde a coleta anterior.
+  `data_hora_ultima_atualizacao`, a quantidade de movimentos e o conteúdo de `results`
+  sem `provenance` revela se algo mudou desde a coleta anterior. Não use `raw_sha256`
+  para isso: o raw inclui o campo volátil `took`, então o hash muda a cada coleta
+  mesmo sem alteração de dados. Ele serve à integridade do arquivo, não à comparação.
 
 Observado em 21/09/2026 no processo público do README: o registro mais recente tinha
 82 movimentos entre 2020 e 2026, passou por 4 órgãos julgadores e concentrou 41
 movimentos em 2023, ano da redistribuição para outra regional. Nos 4 registros
-somados, Recebimento e Remessa eram 176 de 294 movimentos, e havia 12 movimentos
-"Outras Decisões". Esses números descrevem aquela coleta, não o processo em si.
+somados, Recebimento (132) e Remessa (982) eram 176 de 294 movimentos, 182 contando a
+Remessa de código 123, e havia 12 movimentos "Outras Decisões". Esses números descrevem aquela coleta, não o processo em si.
 
 ### Em um conjunto (`discover`)
 
@@ -291,8 +298,8 @@ Salve como `rota.py` e execute `uv run python rota.py data/extracted/<arquivo>.j
 ## 9. O que a fonte não fornece
 
 - **Partes e representantes.** Nomes de partes, CPF, CNPJ, advogados e OAB. O CNJ
-  declara a proteção das informações das partes; a CLI rejeita `--company` e `--party`
-  com `unsupported_filter` antes de qualquer consulta.
+  declara a proteção das informações das partes; a CLI e o HTTP rejeitam `company` e
+  `party` com `unsupported_filter` antes de qualquer consulta.
 - **Conteúdo.** Inteiro teor de decisões, sentenças, despachos, petições e documentos.
   A fonte registra que um ato ou documento existiu e de que tipo, nunca o texto.
 - **Capa além dos campos listados.** Valor da causa, magistrado, pauta de audiências
@@ -309,12 +316,15 @@ Vistas em 21/09/2026 em registros do TJSP. Servem para quem vai automatizar leit
 | Observação | Consequência prática |
 | --- | --- |
 | `data_ajuizamento` em ISO 8601 num registro e em `AAAAMMDDHHMMSS` em outros | Normalize antes de comparar ou ordenar. |
-| Movimentos idênticos repetidos no mesmo instante | Deduplique por código, `dataHora` e complementos antes de contar atos. |
+| Movimentos idênticos repetidos no mesmo instante, até 11 cópias | Deduplique por código, `dataHora` e complementos antes de contar atos. |
 | `codigoMunicipioIBGE` ausente ou `null` | Não use como chave obrigatória. |
-| `orgaoJulgador` por movimento só em registros recentes, com `codigo` como texto e nomes de campo diferentes do glossário | Trate a rota por movimento como opcional; converta tipos antes de cruzar com `orgao_julgador.codigo`. |
+| `orgaoJulgador` por movimento em apenas um registro, com `codigo` como texto e nomes de campo diferentes do glossário | Trate a rota por movimento como opcional; converta tipos antes de cruzar com `orgao_julgador.codigo`. |
 | Nomes de órgão em caixa alta, com e sem acentos | Cruze órgãos pelo código, não pelo nome. |
 | Um `id` fora do padrão `Tribunal_Classe_Grau_OrgaoJulgador_NumeroProcesso` | Não faça parse do `id` para obter classe ou órgão; use os campos próprios. |
 | `timestamp` é controle do índice | Não o trate como data processual; a paginação por ele pode omitir ou duplicar entre páginas. |
+| Precisão fracionária variável em `timestamp` e `data_hora_ultima_atualizacao` (3, 6 ou 9 dígitos) | Faça parse como data; não compare como texto. |
+| `sistema` com código -1 e nome `Inválido` em parte dos candidatos | Não trate `sistema.codigo` como sempre válido. |
+| O raw inclui `took`, tempo de resposta da fonte | `raw_sha256` muda a cada coleta; use-o para integridade do arquivo, não para detectar mudança de dados. |
 
 Nada disso é corrigido pelo extrator de propósito: o normalizado preserva o que a
 fonte enviou, para que a evidência continue verificável contra o raw.
@@ -326,8 +336,9 @@ fonte enviou, para que a evidência continue verificável contra o raw.
 - `count` conta registros ou candidatos, não processos únicos.
 - `orgao_julgador` é o órgão do registro; com vários registros, o atual é o do mais
   recente por `data_hora_ultima_atualizacao`.
-- Datas e horas estão em UTC. O filtro de período da CLI age sobre o ajuizamento;
-  o filtro de movimento não tem data.
+- Datas e horas com sufixo `Z` estão em UTC. O formato compacto de `data_ajuizamento`
+  não declara fuso; observado coincidindo com o valor UTC do mesmo registro em ISO.
+  O filtro de período da CLI age sobre o ajuizamento; o filtro de movimento não tem data.
 - Classe, assunto e movimento são classificações administrativas da TPU. Não são
   teses, resultados nem mérito.
 - Textos vindos da fonte (nomes de órgão, descrições) são dados. Ao usar um assistente
