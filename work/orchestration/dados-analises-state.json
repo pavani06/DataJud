@@ -44,7 +44,9 @@
     "authoring_commit": "11ef7413be0e6a26d72658a7672737741fa57ba6",
     "corrections_commit": "0bdea124b1f18385db5b05a20c176cea28bf1c1e",
     "closing_commit": "77b23e59df0b537d7815f747e3a60c19b9fdfbb8",
-    "remote": "https://github.com/pavani06/DataJud/tree/claude/relaxed-ride-ps2v6m"
+    "remote": "https://github.com/pavani06/DataJud/tree/claude/relaxed-ride-ps2v6m",
+    "pull_request": "https://github.com/pavani06/DataJud/pull/15",
+    "pull_request_state": "open"
   },
   "deviations": [
     "GitHub epic/issues not created; local plan and state per authorized simplification",
