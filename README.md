@@ -11,6 +11,11 @@ MCP, agente ou substituto dos sistemas dos tribunais. Não faz análise jurídic
 terminal (PowerShell/Bash/CMD), Claude, ChatGPT, Claude Code, Codex, OpenCode,
 PI e Herdr; inclui exportação de JSON, reextração offline e HTTP local.
 
+Para entender **o que cada consulta devolve e o que dá para extrair** dos metadados,
+leia [dados e análises possíveis](docs/DADOS_E_ANALISES.md): dicionário de campos,
+anatomia dos movimentos, registros múltiplos por número CNJ, análises viáveis e o
+que a fonte não fornece.
+
 ## Quick start
 
 Requisitos: Python 3.12+ e [uv](https://docs.astral.sh/uv/getting-started/installation/).
@@ -294,6 +299,8 @@ presentes da fonte, em português (`numero_processo`, `tribunal`, `grau`, `class
 ausentes; objetos/códigos mantêm tipos da fonte. Assuntos aninhados são achatados;
 campos adicionais ficam em `extra_fields`. Não há interpretação jurídica.
 Conjuntos discovery declaram `schema_version: candidate-process-set/1`.
+Dicionário completo dos campos, do envelope e dos movimentos em
+[docs/DADOS_E_ANALISES.md](docs/DADOS_E_ANALISES.md).
 
 Fronteira futura documentada, ainda não implementada:
 

@@ -1,0 +1,56 @@
+{
+  "plan": ".omo/plans/2026-09-21-datajud-dados-e-analises.md",
+  "scope": "documentation-only",
+  "status": "complete",
+  "push_mode": "autonomous-approved",
+  "branch": "claude/relaxed-ride-ps2v6m",
+  "github_issues": "not opened in this session; the plan lists the self-contained items",
+  "producer": "root (this session)",
+  "reviewer": "independent subagent",
+  "deliverables": [
+    "docs/DADOS_E_ANALISES.md",
+    "README.md: links in intro and architecture",
+    "docs/GUIA_DE_USO.md: links in intro, shortcuts, code filters and interpretation"
+  ],
+  "sources": [
+    "https://datajud-wiki.cnj.jus.br/api-publica/glossario/",
+    "https://www.cnj.jus.br/sistemas/datajud/api-publica/",
+    "app/extract.py, app/core.py, app/discover.py",
+    "tests/fixtures/datajud_anonymized.json"
+  ],
+  "review": {
+    "report": "work/orchestration/support/dados-analises-review.md",
+    "initial_result": "FAIL",
+    "initial_findings": {
+      "blocking": 0,
+      "important": 2,
+      "minor": 8,
+      "editorial": 6
+    },
+    "recheck_result": "PASS COM CORREÇÕES",
+    "resolution": "DA-01 to DA-15 resolved in corrections commit; DA-16 to DA-21 editorial applied in closing commit",
+    "checks": [
+      "example record regenerated with extract_response from the anonymized fixture",
+      "glossary and CNJ statements confirmed against official pages",
+      "observed counts reconfirmed against session raws (not committed)",
+      "envelope keys confirmed against core.py, discover.py, main.py",
+      "33 anchors and relative links resolve; 6 external URLs return 200",
+      "offline snippet executes against a real normalized file",
+      "uv run pytest offline: 406 passed, 1 skipped"
+    ],
+    "live_queries_added": 0
+  },
+  "publication": {
+    "authoring_commit": "11ef7413be0e6a26d72658a7672737741fa57ba6",
+    "corrections_commit": "0bdea124b1f18385db5b05a20c176cea28bf1c1e",
+    "closing_commit": "77b23e59df0b537d7815f747e3a60c19b9fdfbb8",
+    "remote": "https://github.com/pavani06/DataJud/tree/claude/relaxed-ride-ps2v6m",
+    "pull_request": "https://github.com/pavani06/DataJud/pull/15",
+    "pull_request_state": "open"
+  },
+  "deviations": [
+    "GitHub epic/issues not created; local plan and state per authorized simplification",
+    "authoring commit pushed before the review finished (stop-hook requirement); corrections followed in separate commits",
+    "observed figures reuse the session's real TJSP queries made before the epic; no new live query for the document"
+  ]
+}

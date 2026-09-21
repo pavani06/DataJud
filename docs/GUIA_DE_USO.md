@@ -7,12 +7,16 @@ acesso ao computador, faça a consulta local e forneça o JSON ao assistente.
 O serviço entrega metadados, movimentos e origem verificável da consulta. Não
 entrega busca textual de jurisprudência ou inteiro teor garantido de decisões.
 
+Para o significado de cada campo retornado, os registros múltiplos por número e o
+que se pode derivar dos metadados, consulte [Dados e análises possíveis](DADOS_E_ANALISES.md).
+
 Atalhos: [preparação](#2-prepare-o-projeto-uma-vez) ·
 [consultas no terminal](#3-consultas-prontas-no-terminal) ·
 [exportar e reextrair](#4-exportar-json-e-reextrair-sem-rede) ·
 [prompts para agentes](#5-claude-code-codex-opencode-pi-e-herdr) ·
 [Claude/ChatGPT com JSON](#6-claude-chatgpt-ou-outro-chat-com-json) ·
-[HTTP](#7-uso-por-http-local).
+[HTTP](#7-uso-por-http-local) ·
+[significado dos dados](DADOS_E_ANALISES.md).
 
 ## 1. Escolha como usar
 
@@ -173,6 +177,8 @@ uv run datajud search --tribunal TJSP --subject 7791 --class 386 --size 10 --jso
 O movimento filtra `movimentos.codigo`; não há filtro de data desse movimento.
 Os códigos são numéricos, não palavras de busca. Não peça ao assistente para
 inventar códigos a partir de um tema: confirme-os na fonte/taxonomia antes da consulta.
+Os links das tabelas oficiais e as regras para códigos estão em
+[Dados e análises, seção 5](DADOS_E_ANALISES.md#5-códigos-onde-consultar-e-como-não-errar).
 
 `search` busca uma página de 1–100 registros. Aliases aceitos: `--class/--classe`,
 `--subject/--assunto`, `--movement/--movimento`, `--from/--date-from`, `--to/--date-to`.
@@ -509,6 +515,8 @@ fora desta V0; a rota pronta para esses chats é a exportação de arquivos.
 | JSON truncado ou acentos errados | Use a cópia de `extracted_path/manifest_path` e as instruções UTF-8 da seção 4. |
 
 `count` conta registros/candidatos, não necessariamente números de processo únicos.
+Por que um número tem vários registros e como distingui-los:
+[Dados e análises, seção 6](DADOS_E_ANALISES.md#6-vários-registros-para-um-mesmo-número).
 `total.relation=eq` é o total informado pela fonte; `gte` indica um limite inferior.
 Hashes ajudam a detectar alterações do raw, mas não são assinatura digital do CNJ.
 Provenance registra a coleta; ela não transforma metadados em inteiro teor de decisão.
