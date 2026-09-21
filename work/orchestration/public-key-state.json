@@ -24,7 +24,7 @@
       "role": "review"
     }
   ],
-  "status": "verified-awaiting-publication",
+  "status": "complete",
   "workers": {
     "runtime": "core",
     "documentation": "api_research",
@@ -40,5 +40,21 @@
     "sha256": "59a1f85c7d833780e232feda6f6f14f7ccfedd7586a4e993ba55ca7eb102d536"
   },
   "review": "PASS",
-  "iteration": 1
+  "iteration": 1,
+  "publication": {
+    "commit": "5d2ad546362f4c4e2ba05596fe433031eee6b6e1",
+    "handoffs": {
+      "11": "https://github.com/pavani06/DataJud/issues/11#issuecomment-5766713349",
+      "12": "https://github.com/pavani06/DataJud/issues/12#issuecomment-5766709042",
+      "13": "https://github.com/pavani06/DataJud/issues/13#issuecomment-5766710273",
+      "14": "https://github.com/pavani06/DataJud/issues/14#issuecomment-5766711638"
+    },
+    "issue_states": {
+      "11": "CLOSED",
+      "12": "CLOSED",
+      "13": "CLOSED",
+      "14": "CLOSED"
+    },
+    "readback": "verified"
+  }
 }
