@@ -76,8 +76,8 @@ O envelope é o que a CLI imprime com `--json` e o que as rotas HTTP devolvem.
 
 | Campo | Significado |
 | --- | --- |
-| `query_status` | `success` ou `error`. Em erro, há `error.code` e `error.message`; podem existir `error.upstream_status`, `error.raw_path` e `error.provenance`, ou `error.details` quando o corpo HTTP é inválido. |
-| `source`, `tribunal` | `CNJ/DataJud` e a sigla consultada. Presentes em todos os envelopes. |
+| `query_status` | `success` ou `error`. Em erro, há `error.code` e `error.message`; podem existir `error.upstream_status`, `error.raw_path` e `error.provenance`. Em corpo HTTP inválido, `error.details` substitui `error.message`. |
+| `source`, `tribunal` | `CNJ/DataJud` e a sigla consultada. Presentes em todos os envelopes de sucesso. |
 | `found` | `true` quando houve ao menos um hit. |
 | `count` | Registros nesta página ou candidatos distintos na descoberta. Não é número de processos únicos. |
 | `total` | `{value, relation}` informado pela fonte. `eq` é total exato; `gte` é limite inferior. |
@@ -249,14 +249,15 @@ e a ferramenta não a faz.
 - **Mudanças ao longo do tempo.** Reconsultar o mesmo número e comparar
   `data_hora_ultima_atualizacao`, a quantidade de movimentos e o conteúdo de `results`
   sem `provenance` revela se algo mudou desde a coleta anterior. Não use `raw_sha256`
-  para isso: o raw inclui o campo volátil `took`, então o hash muda a cada coleta
-  mesmo sem alteração de dados. Ele serve à integridade do arquivo, não à comparação.
+  para isso: o raw inclui o campo volátil `took`, então o hash tende a mudar a cada
+  coleta mesmo sem alteração de dados. Ele serve à integridade do arquivo, não à comparação.
 
 Observado em 21/09/2026 no processo público do README: o registro mais recente tinha
 82 movimentos entre 2020 e 2026, passou por 4 órgãos julgadores e concentrou 41
 movimentos em 2023, ano da redistribuição para outra regional. Nos 4 registros
 somados, Recebimento (132) e Remessa (982) eram 176 de 294 movimentos, 182 contando a
-Remessa de código 123, e havia 12 movimentos "Outras Decisões". Esses números descrevem aquela coleta, não o processo em si.
+Remessa de código 123, e havia 12 movimentos "Outras Decisões". Esses números
+descrevem aquela coleta, não o processo em si.
 
 ### Em um conjunto (`discover`)
 
@@ -322,9 +323,9 @@ Vistas em 21/09/2026 em registros do TJSP. Servem para quem vai automatizar leit
 | Nomes de órgão em caixa alta, com e sem acentos | Cruze órgãos pelo código, não pelo nome. |
 | Um `id` fora do padrão `Tribunal_Classe_Grau_OrgaoJulgador_NumeroProcesso` | Não faça parse do `id` para obter classe ou órgão; use os campos próprios. |
 | `timestamp` é controle do índice | Não o trate como data processual; a paginação por ele pode omitir ou duplicar entre páginas. |
-| Precisão fracionária variável em `timestamp` e `data_hora_ultima_atualizacao` (3, 6 ou 9 dígitos) | Faça parse como data; não compare como texto. |
+| Precisão fracionária variável em `timestamp` (3, 6 ou 9 dígitos) e em `data_hora_ultima_atualizacao` (3 ou 6) | Faça parse como data; não compare como texto. |
 | `sistema` com código -1 e nome `Inválido` em parte dos candidatos | Não trate `sistema.codigo` como sempre válido. |
-| O raw inclui `took`, tempo de resposta da fonte | `raw_sha256` muda a cada coleta; use-o para integridade do arquivo, não para detectar mudança de dados. |
+| O raw inclui `took`, tempo de resposta da fonte | `raw_sha256` tende a mudar a cada coleta; use-o para integridade do arquivo, não para detectar mudança de dados. |
 
 Nada disso é corrigido pelo extrator de propósito: o normalizado preserva o que a
 fonte enviou, para que a evidência continue verificável contra o raw.
@@ -337,7 +338,8 @@ fonte enviou, para que a evidência continue verificável contra o raw.
 - `orgao_julgador` é o órgão do registro; com vários registros, o atual é o do mais
   recente por `data_hora_ultima_atualizacao`.
 - Datas e horas com sufixo `Z` estão em UTC. O formato compacto de `data_ajuizamento`
-  não declara fuso; observado coincidindo com o valor UTC do mesmo registro em ISO.
+  não declara fuso; observado coincidindo com o valor UTC em ISO de outro registro do
+  mesmo processo.
   O filtro de período da CLI age sobre o ajuizamento; o filtro de movimento não tem data.
 - Classe, assunto e movimento são classificações administrativas da TPU. Não são
   teses, resultados nem mérito.

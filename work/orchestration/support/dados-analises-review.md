@@ -212,3 +212,73 @@ Mencionar como opcionais, se couber.
 exemplo da seção 7, definições do glossário, códigos citados, snippet, links e
 âncoras estão corretos; a suíte offline passa. Após corrigir DA-01 e DA-02 (e, de
 preferência, DA-03 a DA-10), o documento fica apto a PASS COM CORREÇÕES ou PASS.
+
+## Rechecagem do delta
+
+Data: **2026-09-21**. Objeto: correções do autor em `docs/DADOS_E_ANALISES.md`
+(delta lido via `git diff` contra `11ef741`; durante a rechecagem o autor commitou
+essa mesma versão como `0bdea12`, idêntica ao texto reconferido). Só esse arquivo mudou;
+`app/`, README, guia e plano estão como na revisão original, logo as referências de
+código citadas acima permanecem válidas.
+
+Reconferido:
+
+- Diff completo e leitura integral do documento atual (356 linhas).
+- DA-01, DA-03, DA-08, DA-09, DA-10, DA-11 contra os 6 raws da sessão em `data/raw/`
+  (12 hits), com recontagem no raw `…205620727442Z…`: 294 movimentos; 132 = 106,
+  982 = 70, 123 = 6 (176 / 182); máximo de 11 cópias integralmente idênticas de um
+  movimento; `orgaoJulgador.codigo` por registro = 18457, 10542, 18294, 10542 (3
+  distintos), sendo o mais recente (`TJSP_G1_<n>`) o que compartilha órgão com
+  `TJSP_386_G1_10542_<n>`; `_id == id` em 12/12 hits; órgão por movimento só no
+  registro mais recente do processo (81/82) e em nenhum candidato da descoberta;
+  `sistema` `Inválido`/-1 exatamente nos 2 hits das páginas de discovery (queries
+  `bool/filter` por classe e período); precisão fracionária: `@timestamp` 3/6/9
+  dígitos, `dataHoraUltimaAtualizacao` 3/6.
+- DA-02 contra os dois raws do mesmo processo (idênticos exceto `took`).
+- DA-04 a DA-07 e DA-16 contra `app/core.py` (L71–84, L122–129, L151–158),
+  `app/discover.py` (L41, L62–81) e `app/main.py` (L23, L29).
+- Âncoras e links relativos: 33 verificados em README, guia e documento, todos
+  resolvem; headings do documento inalterados em relação a `11ef741`.
+- Bloco do snippet (seção 8) e exemplo da seção 7: idênticos a `11ef741`; snippet não
+  reexecutado por não ter mudado (execução anterior: exit 0).
+- URLs externas: 6, todas `200`.
+
+| Finding | Status | Evidência curta |
+| --- | --- | --- |
+| DA-01 | resolvido | L159 "Em regra"; L162–163 admite chave não única; L169 usa `provenance.datajud_id` (igual a `id`, confirmado 12/12) e nega unicidade de `orgao_julgador.codigo`; L174–179 "3 órgãos julgadores distintos", dois registros no mesmo órgão distinguidos pelo formato do id, o `TJSP_G1_<número>` sendo o mais recente. Confere com o raw. |
+| DA-02 | resolvido | L249–253 compara `results` sem `provenance`, veta `raw_sha256` e explica `took`; L327 nova linha na seção 10. Confere com os raws (`took` 356 vs 761, resto idêntico). |
+| DA-03 | resolvido | L258–259 "Recebimento (132) e Remessa (982) eram 176 de 294 … 182 contando a Remessa de código 123". Confere: 106 + 70 = 176; + 6 = 182. |
+| DA-04 | resolvido | L85: `null` quando não há; ausente em `extract <raw-file>`; em `discover` dentro de `discovery.pagination`. Confere com `core.py` L74–77/L83/L122–129 e `discover.py` L79. |
+| DA-05 | resolvido | L86 distingue `search`/`process` (nota de paginação sempre), `discover` (nota de seleção) e `extract <raw-file>` (vazio com resultados). Confere com `core.py` L71/L128 e `discover.py` L62. |
+| DA-06 | resolvido | L92–94: `pages` com `raw_path`, `extracted_path`, `provenance`, `count`; candidatos só em `results`. Confere com `discover.py` L41. |
+| DA-07 | resolvido | L80 acrescenta `source`/`tribunal`. Confere com `core.py` L79/L123 e `discover.py` L68–69. Nit em DA-17. |
+| DA-08 | resolvido | L124 "apenas um dos quatro registros do exemplo, o mais recente"; L321 "em apenas um registro". Confirmado também nos candidatos de discovery (0 movimentos com órgão). |
+| DA-09 | resolvido | L132–134 e L319: "até 11 cópias integralmente idênticas … código, nome, `dataHora` e complementos iguais". Confere (máximo 11). |
+| DA-10 | resolvido | L63 e L326: `Inválido` (código -1) em candidatos da descoberta. Confere: 2 hits, ambos de páginas de discovery. |
+| DA-11 | resolvido | L325 nova linha sobre precisão fracionária. Nit em DA-19. |
+| DA-12 | resolvido | L339–341: só o sufixo `Z` garante UTC; compacto sem fuso, observado coincidindo com o valor UTC. Confere (`2020-06-02T14:53:02.000Z` ↔ `20200602145302`). Nit em DA-18. |
+| DA-13 | resolvido | L54 "Coincide com a sigla consultada (`provenance.tribunal`)". |
+| DA-14 | resolvido | L70–71 "não marca nenhum campo como obrigatório". |
+| DA-15 | resolvido | L300–302 "a CLI e o HTTP rejeitam `company` e `party`". Confere com `core.py` L32–34 chamado em `search`/`discover` e rotas de `main.py`. |
+| DA-16 | parcialmente (editorial) | L79 cita `error.upstream_status`, `error.raw_path`, `error.provenance` e `error.details`, mas mantém "há `error.code` e `error.message`" sem dizer que, em corpo HTTP inválido, `error.details` vem **no lugar** de `error.message` (`main.py` L29). Sugestão: "…ou, em corpo HTTP inválido, `error.details` em vez de `error.message`". |
+
+Ressalvas editoriais residuais introduzidas pelo delta (nenhuma altera fatos
+verificados nem bloqueia o commit):
+
+- **DA-17 (editorial)** — L80 "Presentes em todos os envelopes": os envelopes de erro
+  (`core.py` L151–158, `main.py` L23/L29, `cli.py` L100) não têm `source`/`tribunal`.
+  Escrever "em todos os envelopes de sucesso".
+- **DA-18 (editorial)** — L340 "coincidindo com o valor UTC do mesmo registro em ISO":
+  o valor em ISO está em **outro registro do mesmo processo** (hit 1), não no mesmo
+  registro. Escrever "do mesmo processo em outro registro".
+- **DA-19 (editorial)** — L325 "(3, 6 ou 9 dígitos)": 9 dígitos só foram observados em
+  `timestamp`; `data_hora_ultima_atualizacao` apareceu com 3 ou 6. Especificar por campo.
+- **DA-20 (editorial)** — L252 e L327 "muda a cada coleta": só é garantido quando `took`
+  difere; "tende a mudar a cada coleta" é mais preciso. A consequência prática está correta.
+- **DA-21 (editorial)** — L259 tem 128 caracteres em parágrafo corrido; quebrar a linha
+  como o restante do texto.
+
+Veredito final atualizado: **PASS COM CORREÇÕES** — nenhum bloqueante ou importante
+permanece; DA-01 a DA-15 resolvidos e reconferidos contra código e raws; DA-16
+parcialmente resolvido e DA-17 a DA-21 são ajustes editoriais opcionais, que o autor
+pode aplicar no commit de fechamento sem nova rodada de revisão.
