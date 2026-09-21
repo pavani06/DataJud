@@ -46,6 +46,7 @@ def test_cli_process_and_discover(service_factory, api_payload, monkeypatch):
 
 def test_cli_missing_key_invalid_input_and_unsupported(monkeypatch):
     monkeypatch.delenv('DATAJUD_API_KEY', raising=False)
+    monkeypatch.setenv('DATAJUD_AUTH_MODE', 'manual')
     for args, code in [(['search','--tribunal','TJSP'], 'configuration_error'), (['search','--tribunal','BAD'], 'invalid_request'), (['search','--tribunal','TJSP','--company','Example'], 'unsupported_filter'), (['process','bad'], 'invalid_request')]:
         result = runner.invoke(app, args)
         assert result.exit_code != 0

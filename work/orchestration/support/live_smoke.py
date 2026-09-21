@@ -1,19 +1,18 @@
 """Small, explicit live acceptance check; never prints or persists the API key.
 
-Run: uv run python work/orchestration/support/live_smoke.py --public-key-from-docs
-Omit the flag to require DATAJUD_API_KEY from the environment.
+Run: uv run python work/orchestration/support/live_smoke.py
+Uses the production auth mode (auto by default); no separate key scraper.
 """
 
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
 from datetime import date, datetime, timezone
 import hashlib
-from html.parser import HTMLParser
 import json
 import os
 from pathlib import Path
-import re
 import socket
 import subprocess
 import sys
@@ -24,39 +23,11 @@ from unittest.mock import patch
 import httpx
 
 ROOT = Path(__file__).resolve().parents[3]
-KEY_PAGE = "https://datajud-wiki.cnj.jus.br/api-publica/acesso/"
 REPORT_PATH = ROOT / "work/orchestration/support/live-report.json"
-
-
-class PageText(HTMLParser):
-    def __init__(self) -> None:
-        super().__init__()
-        self.parts: list[str] = []
-
-    def handle_data(self, data: str) -> None:
-        self.parts.append(data)
 
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-
-
-def get_key(allow_public_page: bool) -> str:
-    key = os.getenv("DATAJUD_API_KEY", "").strip()
-    if key:
-        return key
-    if not allow_public_page:
-        raise RuntimeError("Configure DATAJUD_API_KEY or use --public-key-from-docs")
-    response = httpx.get(KEY_PAGE, timeout=30, follow_redirects=False)
-    response.raise_for_status()
-    parser = PageText()
-    parser.feed(response.text)
-    matches = re.findall(
-        r"\bApiKey\s+([A-Za-z0-9+/=_-]{20,})", " ".join(parser.parts), re.I
-    )
-    if len(set(matches)) != 1:
-        raise RuntimeError("Official key page format changed; configure key manually")
-    return matches[0]
 
 
 def verify_result(result: dict) -> dict:
@@ -201,20 +172,22 @@ def delta_checks(service, canary: dict, report: dict) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--public-key-from-docs", action="store_true")
+    parser.add_argument("--public-key-from-docs", action="store_true", help="Compatibility flag: explicitly select production auto authentication")
     parser.add_argument("--delta-only", action="store_true", help="Reuse the verified canary from live-report.json and run only the expanded acceptance checks")
     args = parser.parse_args()
     report: dict = {"started_at": utc_now(), "status": "running", "checks": {}}
-    stage = "key"
+    stage = "configuration"
     try:
-        key = get_key(args.public_key_from_docs)
-        env = os.environ.copy()
-        env.update(DATAJUD_API_KEY=key, DATAJUD_DATA_DIR=str(ROOT / "data"), PYTHONIOENCODING="utf-8")
         from app.config import Settings
         from app.core import DataJudService
         from app.models import SearchRequest
 
-        service = DataJudService(Settings(api_key=key, data_dir=ROOT / "data"))
+        settings = replace(Settings.from_env(), data_dir=ROOT / "data")
+        if args.public_key_from_docs:
+            settings = replace(settings, auth_mode="auto")
+        env = os.environ.copy()
+        env.update(DATAJUD_AUTH_MODE=settings.auth_mode, DATAJUD_DATA_DIR=str(settings.data_dir), PYTHONIOENCODING="utf-8")
+        service = DataJudService(settings)
         if args.delta_only:
             previous = json.loads(REPORT_PATH.read_text(encoding="utf-8"))
             report["checks"].update(previous["checks"])

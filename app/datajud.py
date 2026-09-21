@@ -2,22 +2,22 @@
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
 import json
 import logging
-import math
 import time
 from typing import Any
 
 import httpx
 
 from app.config import Settings
+from app.public_key import (
+    PublicKeyError, fetch_public_key, retry_delay as _retry_delay,
+    RETRY_STATUSES as _RETRY_STATUSES, TRANSIENT_ERRORS as _TRANSIENT_ERRORS,
+)
 from app.queries import prepare_raw_query
 from app.tribunals import resolve_tribunal
 
 logger = logging.getLogger(__name__)
-_RETRY_STATUSES = {429, 502, 503, 504}
-_TRANSIENT_ERRORS = (httpx.TimeoutException, httpx.NetworkError, httpx.RemoteProtocolError)
 
 
 @dataclass
@@ -102,29 +102,10 @@ def _unique_object(pairs: list[tuple[str, Any]]) -> dict:
     return result
 
 
-def _retry_delay(attempt: int, retry_after: str | None = None) -> float:
-    fallback = min(0.25 * (2**attempt), 2.0)
-    if retry_after is None:
-        return fallback
-    try:
-        delay = float(retry_after)
-    except ValueError:
-        try:
-            when = parsedate_to_datetime(retry_after)
-            if when.tzinfo is None:
-                when = when.replace(tzinfo=timezone.utc)
-            delay = (when - datetime.now(timezone.utc)).total_seconds()
-        except (ValueError, TypeError, OverflowError):
-            return fallback
-    return min(max(delay, 0.0), 2.0) if math.isfinite(delay) else fallback
-
-
 class DataJudClient:
     def __init__(self, settings: Settings, *, transport: httpx.BaseTransport | None = None) -> None:
         self.settings = settings
         headers = {"Content-Type": "application/json", "Accept": "application/json"}
-        if settings.api_key:
-            headers["Authorization"] = f"APIKey {settings.api_key}"
         self._client = httpx.Client(
             headers=headers,
             timeout=settings.timeout_seconds,
@@ -151,16 +132,21 @@ class DataJudClient:
     def search(self, tribunal: str, query: dict) -> Retrieval:
         normalized, alias, endpoint = resolve_tribunal(tribunal)
         prepared = prepare_raw_query(query)
-        if not self.settings.api_key:
-            raise DataJudError("configuration_error", "Configure DATAJUD_API_KEY para consultar o DataJud.", 503)
-        for attempt in range(self.settings.max_retries + 1):
+        key = self._resolve_key()
+        # The POST retry budget is shared across the initial and refreshed key.
+        # Auto: <= max_retries+2 POSTs and <= 2*(max_retries+1) GETs per search.
+        # Manual: <= max_retries+1 POSTs, no GET, no auth refresh.
+        transient_retries = 0
+        refreshed = False
+        while True:
             started = time.monotonic()
             try:
-                response = self._client.post(endpoint, json=prepared)
+                response = self._client.post(endpoint, json=prepared, headers={"Authorization": f"APIKey {key}"})
             except httpx.RequestError as exc:
                 self._log(normalized, None, started, None)
-                if isinstance(exc, _TRANSIENT_ERRORS) and attempt < self.settings.max_retries:
-                    time.sleep(_retry_delay(attempt))
+                if isinstance(exc, _TRANSIENT_ERRORS) and transient_retries < self.settings.max_retries:
+                    time.sleep(_retry_delay(transient_retries))
+                    transient_retries += 1
                     continue
                 if isinstance(exc, httpx.TimeoutException):
                     raise DataJudError("timeout", "DataJud excedeu o tempo limite da consulta.", 504) from None
@@ -168,10 +154,15 @@ class DataJudClient:
             status = response.status_code
             if not 200 <= status < 300:
                 self._log(normalized, status, started, None)
-                if status in _RETRY_STATUSES and attempt < self.settings.max_retries:
-                    time.sleep(_retry_delay(attempt, response.headers.get("Retry-After")))
+                if status in _RETRY_STATUSES and transient_retries < self.settings.max_retries:
+                    time.sleep(_retry_delay(transient_retries, response.headers.get("Retry-After")))
+                    transient_retries += 1
                     continue
                 if status in (401, 403):
+                    if self.settings.auth_mode == "auto" and not refreshed:
+                        refreshed = True
+                        key = self._resolve_key()
+                        continue
                     raise DataJudError(
                         "authentication_error", "DataJud recusou a credencial configurada.",
                         upstream_status=status,
@@ -214,4 +205,13 @@ class DataJudClient:
                 ) from None
             self._log(normalized, status, started, count)
             return retrieval
-        raise AssertionError("Unreachable retry state")
+
+    def _resolve_key(self) -> str:
+        if self.settings.auth_mode == "manual":
+            if not self.settings.api_key:
+                raise DataJudError("configuration_error", "Configure DATAJUD_API_KEY no modo manual.", 503)
+            return self.settings.api_key
+        try:
+            return fetch_public_key(self._client, max_retries=self.settings.max_retries)
+        except PublicKeyError as exc:
+            raise DataJudError(exc.code, str(exc), exc.status_code, upstream_status=exc.upstream_status) from None

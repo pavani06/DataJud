@@ -1,0 +1,44 @@
+{
+  "plan": ".omo/plans/2026-09-21-datajud-public-key.md",
+  "push_mode": "autonomous-approved",
+  "epic": 11,
+  "issues": [
+    {
+      "file": "epic-public-key.md",
+      "number": 11,
+      "role": "epic"
+    },
+    {
+      "file": "issue-public-key-runtime.md",
+      "number": 12,
+      "role": "runtime"
+    },
+    {
+      "file": "issue-public-key-docs.md",
+      "number": 13,
+      "role": "docs"
+    },
+    {
+      "file": "issue-public-key-review.md",
+      "number": 14,
+      "role": "review"
+    }
+  ],
+  "status": "verified-awaiting-publication",
+  "workers": {
+    "runtime": "core",
+    "documentation": "api_research",
+    "review": "evidence",
+    "integration": "root"
+  },
+  "deviations": [
+    "task-wrapper and qi-epic-close-check unavailable: local acceptance and GitHub readback equivalents",
+    "local work/orchestration state per user simplification"
+  ],
+  "acceptance": {
+    "path": "work/orchestration/support/public-key-acceptance.json",
+    "sha256": "59a1f85c7d833780e232feda6f6f14f7ccfedd7586a4e993ba55ca7eb102d536"
+  },
+  "review": "PASS",
+  "iteration": 1
+}

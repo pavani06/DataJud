@@ -1,5 +1,13 @@
 # Entrega — DataJud Lite V0
 
+Este documento registra a entrega inicial e seus testes históricos. A atualização
+do épico #11 passou a obter a chave pública automaticamente a cada busca; a
+configuração manual descrita abaixo é o comportamento anterior. Para uso atual,
+consulte o [README](README.md#autenticação-e-configuração-opcional) e o
+[guia de uso](docs/GUIA_DE_USO.md). As evidências dessa atualização ficam em
+`work/orchestration/public-key-state.json` e
+`work/orchestration/support/public-key-acceptance.json`.
+
 Repositório **privado**: https://github.com/pavani06/DataJud.
 Implementação: commit `37ee2f2` na `main`; épico #1, issues #2–#7.
 Workflow: qi-epic 1.1.0 com sessões paralelas, ownership exclusivo e revisão cruzada.

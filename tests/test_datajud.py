@@ -19,7 +19,7 @@ def valid_payload(hits=None, total=None):
 
 
 def make_client(handler, **settings):
-    return DataJudClient(Settings(api_key="test-only-key", max_retries=settings.pop("max_retries", 0), **settings), transport=httpx.MockTransport(handler))
+    return DataJudClient(Settings(api_key="test-only-key", auth_mode="manual", max_retries=settings.pop("max_retries", 0), **settings), transport=httpx.MockTransport(handler))
 
 
 def test_request_auth_endpoint_raw_query_provenance_and_logging(caplog):
@@ -63,7 +63,7 @@ def test_zero_hits_is_a_valid_retrieval(total):
 
 def test_missing_key_fails_without_network():
     requests = []
-    with DataJudClient(Settings(), transport=httpx.MockTransport(lambda request: requests.append(request))) as client:
+    with DataJudClient(Settings(auth_mode="manual"), transport=httpx.MockTransport(lambda request: requests.append(request))) as client:
         with pytest.raises(DataJudError) as caught:
             client.search("TJSP", {})
     assert caught.value.code == "configuration_error"
@@ -216,3 +216,140 @@ def test_public_validation_rejects_partial_evidence(timed_out, failed):
     payload["_shards"]["failed"] = failed
     with pytest.raises(ValueError, match="parcial"):
         validate_response(payload)
+
+
+def test_auto_fetches_rotating_key_for_each_search_without_caching_or_leaking(caplog):
+    keys = iter(["synthetic-first-key==", "synthetic-second-key=="])
+    requests = []
+    def handler(request):
+        requests.append(request)
+        if request.method == "GET":
+            assert "Authorization" not in request.headers
+            return httpx.Response(200, text=f"<pre>Authorization: APIKey {next(keys)}</pre>")
+        return httpx.Response(200, json=valid_payload())
+    with caplog.at_level(logging.INFO), DataJudClient(Settings(api_key="stale-key", max_retries=0), transport=httpx.MockTransport(handler)) as client:
+        first = client.search("TJSP", {})
+        second = client.search("TJSP", {"search_after": [123]})
+        assert "Authorization" not in client._client.headers
+    assert [r.method for r in requests] == ["GET", "POST", "GET", "POST"]
+    assert requests[1].headers["Authorization"] == "APIKey synthetic-first-key=="
+    assert requests[3].headers["Authorization"] == "APIKey synthetic-second-key=="
+    assert "synthetic-" not in repr(first) + repr(second) + caplog.text
+    assert "stale-key" not in repr(first) + repr(second) + caplog.text
+
+
+@pytest.mark.parametrize("status", [401, 403])
+def test_auto_auth_refresh_is_once_even_without_transient_retries(status):
+    requests = []
+    def handler(request):
+        requests.append(request)
+        if request.method == "GET":
+            return httpx.Response(200, text="Authorization: APIKey synthetic-token==")
+        return httpx.Response(status, text="DO-NOT-LOG")
+    with DataJudClient(Settings(max_retries=0), transport=httpx.MockTransport(handler)) as client:
+        with pytest.raises(DataJudError) as caught:
+            client.search("TJSP", {})
+    assert [r.method for r in requests] == ["GET", "POST", "GET", "POST"]
+    assert caught.value.code == "authentication_error" and caught.value.upstream_status == status
+    assert caught.value.retrieval is None and "DO-NOT-LOG" not in str(caught.value)
+
+
+def test_auto_refresh_can_recover_using_new_key():
+    keys, statuses = iter(["old-synthetic-key", "new-synthetic-key"]), iter([401, 200])
+    post_keys = []
+    def handler(request):
+        if request.method == "GET":
+            return httpx.Response(200, text=f"Authorization: APIKey {next(keys)}")
+        post_keys.append(request.headers["Authorization"])
+        return httpx.Response(next(statuses), json=valid_payload())
+    with DataJudClient(Settings(max_retries=0), transport=httpx.MockTransport(handler)) as client:
+        assert client.search("TJSP", {}).payload == valid_payload()
+    assert post_keys == ["APIKey old-synthetic-key", "APIKey new-synthetic-key"]
+
+
+def test_auto_transient_budget_is_shared_across_refresh(monkeypatch):
+    statuses = iter([503, 401, 503, 503])
+    methods, sleeps = [], []
+    monkeypatch.setattr("app.datajud.time.sleep", sleeps.append)
+    def handler(request):
+        methods.append(request.method)
+        if request.method == "GET":
+            return httpx.Response(200, text="Authorization: APIKey synthetic-token")
+        return httpx.Response(next(statuses))
+    with DataJudClient(Settings(max_retries=2), transport=httpx.MockTransport(handler)) as client:
+        with pytest.raises(DataJudError) as caught:
+            client.search("TJSP", {})
+    assert caught.value.code == "upstream_error"
+    assert methods == ["GET", "POST", "POST", "GET", "POST", "POST"]
+    assert sleeps == [0.25, 0.5]
+
+
+def test_auto_does_not_refetch_key_for_transient_post_retry(monkeypatch):
+    methods, post_count = [], 0
+    monkeypatch.setattr("app.datajud.time.sleep", lambda delay: None)
+    def handler(request):
+        nonlocal post_count
+        methods.append(request.method)
+        if request.method == "GET":
+            return httpx.Response(200, text="Authorization: APIKey synthetic-token")
+        post_count += 1
+        if post_count == 1:
+            raise httpx.ReadTimeout("do-not-log", request=request)
+        return httpx.Response(200, json=valid_payload())
+    with DataJudClient(Settings(max_retries=1), transport=httpx.MockTransport(handler)) as client:
+        assert client.search("TJSP", {}).payload == valid_payload()
+    assert methods == ["GET", "POST", "POST"]
+
+
+def test_auto_does_not_fallback_to_environment_on_wiki_failure():
+    methods = []
+    def handler(request):
+        methods.append(request.method)
+        return httpx.Response(200, text="No credential here")
+    with DataJudClient(Settings(api_key="stale-environment-key", max_retries=0), transport=httpx.MockTransport(handler)) as client:
+        with pytest.raises(DataJudError) as caught:
+            client.search("TJSP", {})
+    assert methods == ["GET"]
+    assert caught.value.code == "public_key_not_found"
+    assert caught.value.retrieval is None
+
+
+@pytest.mark.parametrize("tribunal,query", [("BAD", {}), ("TJSP", {"size": 101})])
+def test_invalid_auto_input_is_rejected_before_even_wiki_get(tribunal, query):
+    requests = []
+    with DataJudClient(Settings(), transport=httpx.MockTransport(lambda r: requests.append(r))) as client:
+        with pytest.raises(ValueError):
+            client.search(tribunal, query)
+    assert not requests
+
+
+def test_combined_get_post_refresh_attempts_obey_documented_global_bound(monkeypatch):
+    # max_retries=3 permits at most 8 GETs and 5 POSTs per complete search.
+    get_statuses = iter([503, 503, 503, 200, 503, 503, 503, 200])
+    post_statuses = iter([503, 503, 503, 401, 200])
+    methods = []
+    monkeypatch.setattr("app.datajud.time.sleep", lambda delay: None)
+    def handler(request):
+        methods.append(request.method)
+        if request.method == "GET":
+            return httpx.Response(next(get_statuses), text="Authorization: APIKey synthetic-token")
+        return httpx.Response(next(post_statuses), json=valid_payload())
+    with DataJudClient(Settings(max_retries=3), transport=httpx.MockTransport(handler)) as client:
+        assert client.search("TJSP", {}).payload == valid_payload()
+    assert methods.count("GET") == 8 and methods.count("POST") == 5
+
+
+def test_refresh_fetch_failure_stops_without_stale_key_retry():
+    methods = []
+    def handler(request):
+        methods.append(request.method)
+        if methods == ["GET"]:
+            return httpx.Response(200, text="Authorization: APIKey synthetic-initial-token")
+        if request.method == "POST":
+            return httpx.Response(401)
+        return httpx.Response(200, text="key removed from page")
+    with DataJudClient(Settings(api_key="stale-key", max_retries=0), transport=httpx.MockTransport(handler)) as client:
+        with pytest.raises(DataJudError) as caught:
+            client.search("TJSP", {})
+    assert methods == ["GET", "POST", "GET"]
+    assert caught.value.code == "public_key_not_found" and caught.value.retrieval is None

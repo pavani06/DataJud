@@ -20,63 +20,93 @@ Repositório privado: a conta usada no clone precisa ter acesso.
 git clone https://github.com/pavani06/DataJud.git
 cd DataJud
 uv sync
-Copy-Item .env.example .env
 ```
 
-Abra `.env` localmente e preencha `DATAJUD_API_KEY` com **somente o valor** da chave
-vigente na [página oficial de acesso](https://datajud-wiki.cnj.jus.br/api-publica/acesso/).
-Não inclua o prefixo `APIKey`. O cliente acrescenta `Authorization: APIKey <valor>`.
-A chave pode ser alterada pelo CNJ; não há chave embutida no código.
-
-```dotenv
-DATAJUD_API_KEY=<valor obtido na página oficial>
-DATAJUD_TIMEOUT_SECONDS=30
-DATAJUD_MAX_RETRIES=2
-DATAJUD_DATA_DIR=./data
-```
-
-O arquivo `.env` é ignorado pelo Git. Não é carregado automaticamente pela aplicação:
-use `uv run --env-file .env ...`, ou exporte as variáveis no shell. Em Linux/macOS,
-a cópia equivalente é `cp .env.example .env`. Não publique o arquivo preenchido.
+Não é necessário criar `.env` nem copiar uma chave. O padrão
+`DATAJUD_AUTH_MODE=auto` obtém a chave pública vigente na
+[página oficial de acesso](https://datajud-wiki.cnj.jus.br/api-publica/acesso/)
+antes de cada busca, incluindo cada página de discovery. O CNJ informa que pode
+alterar a chave a qualquer momento; ela não fica embutida no código.
 
 ```powershell
 uv run datajud --help
 uv run datajud search --help
 uv run datajud health
-uv run --env-file .env datajud search --tribunal TJSP --size 1 --json
+uv run datajud search --tribunal TJSP --size 1 --json
 ```
 
-`health` não exige rede nem chave. `uv run datajud ...` usa diretamente a CLI local;
-não precisa iniciar o servidor HTTP.
+`health` não consulta a wiki nem a API. `uv run datajud ...` usa diretamente a CLI
+local; não precisa iniciar o servidor HTTP.
+
+## Autenticação e configuração opcional
+
+No modo `auto`, cada chamada de busca lê a página oficial novamente, sem cache
+entre chamadas ou páginas. O GET da wiki não envia Authorization; a chave fica
+somente em memória e vai apenas no POST do endpoint DataJud do registry.
+O serviço não grava a chave nem o HTML da página. Uma `DATAJUD_API_KEY` antiga no
+ambiente é ignorada em `auto`; não há fallback silencioso para ela.
+
+Se o DataJud responder 401/403, o modo automático atualiza a chave uma vez e faz
+uma nova tentativa de autenticação por chamada. Se a wiki falhar ou não fornecer
+uma chave inequívoca, a busca retorna erro explícito; isso não vira resultado vazio.
+Health e `extract <raw-file>` continuam inteiramente offline, sem acesso à wiki.
+
+Para alterar timeout, retries ou pasta, exporte variáveis ou crie um `.env`
+opcional a partir de `.env.example`, preservando um arquivo existente:
+
+```dotenv
+DATAJUD_AUTH_MODE=auto
+DATAJUD_TIMEOUT_SECONDS=30
+DATAJUD_MAX_RETRIES=2
+DATAJUD_DATA_DIR=./data
+```
+
+A aplicação não carrega `.env` automaticamente. Se optar por esse arquivo, use
+`uv run --env-file .env datajud search --tribunal TJSP --size 1 --json`, ou
+`uv run --env-file .env uvicorn app.main:app --host 127.0.0.1 --port 8787`.
+Sem esse arquivo, os comandos do quick start funcionam com os padrões.
+
+O override manual é explícito, para diagnóstico ou ambiente controlado:
+
+```dotenv
+DATAJUD_AUTH_MODE=manual
+DATAJUD_API_KEY=<somente o valor da chave pública vigente>
+```
+
+Nesse modo, preencha o valor obtido na página oficial sem o prefixo `APIKey`.
+O cliente acrescenta o header. `manual` exige a variável, não consulta a wiki e
+não atualiza a chave ao receber 401/403. Só definir `DATAJUD_API_KEY` não ativa
+esse modo. `.env` é ignorado pelo Git; não publique o arquivo preenchido.
 
 ## Três consultas verificadas na API real
 
-Exemplos verificados em 2026-09-21. Os dados e a cobertura podem mudar; as contagens
-abaixo são observações daquela execução, não garantias futuras. Números de processo
-são texto: zeros iniciais são preservados.
+As consultas abaixo foram verificadas na entrega inicial de **2026-09-21, antes
+da autenticação automática**. Os comandos já usam o padrão atual sem `.env`;
+as contagens são observações históricas, não uma nova execução nem garantias
+futuras. Números de processo são texto: zeros iniciais são preservados.
 
 ```powershell
 # A: processo público descoberto pelo próprio DataJud; tribunal de origem inferido
-uv run --env-file .env datajud process 0018226-05.2020.8.26.0050 --json
+uv run datajud process 0018226-05.2020.8.26.0050 --json
 
 # B: conjunto estrutural com classe e período; três páginas de um registro
-uv run --env-file .env datajud discover --tribunal TJSP --class 386 --from 2020-06-02 --to 2020-06-02 --limit 3 --page-size 1 --json
+uv run datajud discover --tribunal TJSP --class 386 --from 2020-06-02 --to 2020-06-02 --limit 3 --page-size 1 --json
 
 # C: processo com movimento estrutural observado na resposta real
-uv run --env-file .env datajud search --tribunal TJSP --processo 00182260520208260050 --movement 982 --size 1 --json
+uv run datajud search --tribunal TJSP --processo 00182260520208260050 --movement 982 --size 1 --json
 ```
 
 O teste A retornou 4 registros; B retornou 3 candidatos em 3 páginas, com total
 upstream `113/eq`; C retornou 1 registro na página solicitada. Classe, grau e
 movimentos são metadados da fonte. Não fazemos interpretação jurídica deles.
-O relatório reproduzível está em [live-report.json](work/orchestration/support/live-report.json).
+O registro histórico está em [live-report.json](work/orchestration/support/live-report.json).
 
 Também é possível consultar assuntos e combinar filtros:
 
 ```powershell
-uv run --env-file .env datajud search --tribunal TJSP --subject 7791 --class 386 --size 10
-uv run --env-file .env datajud search --tribunal TJSP --query-file examples/query.json --raw
-uv run --env-file .env datajud discover --tribunal TJSP --subject 7791 --limit 1000 --raw
+uv run datajud search --tribunal TJSP --subject 7791 --class 386 --size 10
+uv run datajud search --tribunal TJSP --query-file examples/query.json --raw
+uv run datajud discover --tribunal TJSP --subject 7791 --limit 1000 --raw
 ```
 
 O filtro de assunto está coberto por testes de DSL; os três exemplos acima da seção
@@ -99,7 +129,7 @@ Processos redistribuídos ou recursos podem estar em outro tribunal; a inferênc
 não procura todas as instâncias. Use o override explicitamente:
 
 ```powershell
-uv run --env-file .env datajud process 00182260520208260050 --tribunal TJSP --json
+uv run datajud process 00182260520208260050 --tribunal TJSP --json
 ```
 
 Segmentos/conselhos sem endpoint público inequívoco geram erro pedindo tribunal.
@@ -131,7 +161,7 @@ Use o `raw_path` retornado por uma consulta (o arquivo original, não seu sideca
 uv run datajud extract "data/raw/<arquivo retornado pela consulta>.json" --json
 ```
 
-Isso não exige API key nem chama CNJ. O arquivo deve estar no diretório `raw/` de
+Isso não exige API key nem consulta a wiki ou a API CNJ. O arquivo deve estar no diretório `raw/` de
 `DATAJUD_DATA_DIR`; se a pasta de dados for diferente, configure a variável também
 na reextração. Raw e sidecar devem ser mantidos juntos. Hash divergente, metadata
 inválida, sidecar ausente ou resposta parcial são recusados explicitamente.
@@ -185,7 +215,7 @@ pelo serviço: use `limit/page_size`, sem `size/from/search_after` no arquivo.
 ## HTTP local
 
 ```powershell
-uv run --env-file .env uvicorn app.main:app --host 127.0.0.1 --port 8787
+uv run uvicorn app.main:app --host 127.0.0.1 --port 8787
 ```
 
 | Método/rota | Entrada |
@@ -218,12 +248,16 @@ autenticação multiusuário. Não exponha como proxy público.
 significam somente que a consulta naquela fonte/momento não retornou hits.
 Isso não prova inexistência de processo nem ausência de jurisprudência.
 
-Timeout, conexão, 401/403, 404, 429, 5xx, JSON/schema inválido e resultado parcial
-são erros explícitos. `timed_out: true` e shards com falha não são sucesso vazio;
-se houver corpo recebido com HTTP 2xx, o raw é preservado para inspeção.
+Falha ao obter a chave oficial, timeout, conexão, 401/403 persistente, 404, 429,
+5xx, JSON/schema inválido e resultado parcial são erros explícitos.
+`timed_out: true` e shards com falha não são sucesso vazio;
+Se houver corpo da API DataJud recebido com HTTP 2xx, o raw é preservado para
+inspeção. O HTML da wiki nunca é salvo como evidência da consulta.
 
-Retries: no máximo 2 por padrão (configurável 0–3), apenas transporte transitório e
-429/502/503/504; backoff pequeno, até 2 segundos. 401/403/404 não são repetidos.
+Retries transitórios: no máximo 2 por padrão (configurável 0–3), para transporte e
+429/502/503/504; backoff pequeno, até 2 segundos. A renovação após 401/403 é separada
+e limitada a uma por chamada no modo auto. Em manual, 401/403 não são repetidos;
+404 também não. Uma falha da wiki nunca aciona chave antiga como fallback.
 Timeout de 30s por operação de transporte; não é prazo total de toda a descoberta.
 Erros upstream retornam 502/503/504 localmente; entrada inválida/unsupported é 422.
 CLI encerra com status não zero. Logs mostram tribunal, operação, status, duração e
@@ -279,25 +313,39 @@ uv run pytest
 
 Testes normais usam mocks. A fixture `tests/fixtures/datajud_anonymized.json` deriva
 do schema do canário real, com identificadores/contexto processual substituídos.
-O opt-in de integração exige **ambos** a variável de habilitação e a chave:
+O opt-in de integração exige `DATAJUD_INTEGRATION_TEST=1`; no modo automático
+padrão não é preciso configurar `DATAJUD_API_KEY`:
 
 ```powershell
 $env:DATAJUD_INTEGRATION_TEST = '1'
-uv run --env-file .env pytest -m integration
+uv run pytest -m integration
 Remove-Item Env:DATAJUD_INTEGRATION_TEST
 ```
+
+Canário específico da autenticação automática, habilitado explicitamente:
+
+```powershell
+uv run python work/orchestration/support/public_key_smoke.py --live
+```
+
+Esse script faz uma busca de tamanho 1 com a chave obtida pela rotina automática
+e reprocessa a evidência offline. Grava o resultado em
+[public-key-live-report.json](work/orchestration/support/public-key-live-report.json)
+quando executado; não imprime nem persiste a chave. Esse relatório registra a
+validação atual, separadamente das contagens históricas da V0 acima.
 
 Smoke completo de aceitação (faz poucas consultas reais e inicia/encerra seu próprio
 uvicorn loopback; não imprime nem grava a chave):
 
 ```powershell
-uv run --env-file .env python work/orchestration/support/live_smoke.py
+uv run python work/orchestration/support/live_smoke.py
 ```
 
-Opcionalmente o script pode obter a chave pública vigente em memória mediante flag
-explícita: `--public-key-from-docs`. Isso não altera configuração nem embute uma chave.
-A biblioteca de produção sempre usa ambiente. `--delta-only` reaproveita um relatório
-local anterior e exercita processo/discovery/movimento/offline da correção de escopo.
+O smoke usa o mesmo fluxo automático do serviço, sem copiar a chave para o ambiente.
+`--delta-only` reaproveita um relatório local anterior e exercita
+processo/discovery/movimento/offline da correção de escopo. Os relatórios da entrega
+inicial documentam o comportamento anterior; o canário da autenticação automática
+é uma validação separada. Testes normais continuam sem rede.
 
 Neste host uv foi instalado localmente em `.tools/bin/uv.exe`; os comandos registrados
 usaram `uv run --cache-dir .uv-cache --no-sync ...` após o sync, com escalonamento
@@ -325,6 +373,10 @@ e [resposta search](https://www.elastic.co/docs/api/doc/elasticsearch/operation/
 O range foi derivado da DSL Elastic e confirmado em consulta real DataJud.
 
 ## Limitações e futuras extensões
+
+O modo automático depende tanto da página oficial da chave quanto da API DataJud;
+uma falha ou mudança incompatível na página pode impedir a consulta. Não há cache
+nem uso automático de uma chave antiga. O modo manual exige escolha explícita.
 
 Não há promessa de completude, consistência entre páginas ou atualização imediata da
 base. Uma numeração pode ter múltiplos registros/graus; a origem CNJ pode divergir do

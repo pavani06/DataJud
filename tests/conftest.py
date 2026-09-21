@@ -26,7 +26,7 @@ def service_factory(tmp_path):
         def request_handler(request):
             calls.append(json.loads(request.content))
             return handler(request) if handler else httpx.Response(200, json=copy.deepcopy(payload))
-        settings = Settings(api_key='local-test-key', data_dir=tmp_path / 'evidence', max_retries=0)
+        settings = Settings(auth_mode='manual', api_key='local-test-key', data_dir=tmp_path / 'evidence', max_retries=0)
         client = DataJudClient(settings, transport=httpx.MockTransport(request_handler))
         clients.append(client)
         return DataJudService(settings, client), calls

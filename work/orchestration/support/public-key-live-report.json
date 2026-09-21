@@ -1,0 +1,23 @@
+{
+  "started_at": "2026-09-21T19:58:00.347155+00:00",
+  "status": "success",
+  "auth_mode": "auto",
+  "configured_key": false,
+  "requests": [
+    {
+      "method": "GET",
+      "url": "https://datajud-wiki.cnj.jus.br/api-publica/acesso/"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-publica.datajud.cnj.jus.br/api_publica_tjsp/_search"
+    }
+  ],
+  "count": 1,
+  "raw_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\raw\\TJSP_20260921T195801504713Z_c0dcf8d6fa0f16b26c026b38d9613cf63b4426a05fe3a05c920477ff72740d58_46a1e32b048e4f2da9a24d1cf818a6a4.json",
+  "extracted_path": "C:\\Users\\pavan\\OneDrive\\Documents\\ChatGPT\\DataJud\\data\\extracted\\TJSP_20260921T195801504713Z_c0dcf8d6fa0f16b26c026b38d9613cf63b4426a05fe3a05c920477ff72740d58_46a1e32b048e4f2da9a24d1cf818a6a4.json",
+  "raw_sha256": "c0dcf8d6fa0f16b26c026b38d9613cf63b4426a05fe3a05c920477ff72740d58",
+  "offline_replay": "passed",
+  "credential_absent_from_evidence": true,
+  "finished_at": "2026-09-21T19:58:01.542117+00:00"
+}

@@ -6,16 +6,18 @@ from app.config import Settings
 
 
 def test_defaults_work_without_a_key(monkeypatch):
-    for key in ("API_KEY", "TIMEOUT_SECONDS", "DATA_DIR", "MAX_RETRIES"):
+    for key in ("API_KEY", "TIMEOUT_SECONDS", "DATA_DIR", "MAX_RETRIES", "AUTH_MODE"):
         monkeypatch.delenv(f"DATAJUD_{key}", raising=False)
     settings = Settings.from_env()
     assert settings.api_key == ""
+    assert settings.auth_mode == "auto"
     assert settings.timeout_seconds == 30
     assert settings.max_retries == 2
     assert settings.data_dir == Path("data")
 
 
 def test_environment_and_safe_repr(monkeypatch, tmp_path):
+    monkeypatch.setenv("DATAJUD_AUTH_MODE", "manual")
     monkeypatch.setenv("DATAJUD_API_KEY", "  test-only-key  ")
     monkeypatch.setenv("DATAJUD_TIMEOUT_SECONDS", "2.5")
     monkeypatch.setenv("DATAJUD_MAX_RETRIES", "1")
@@ -37,7 +39,7 @@ def test_environment_and_safe_repr(monkeypatch, tmp_path):
 ])
 def test_invalid_configuration_is_rejected_without_echoing_values(kwargs):
     with pytest.raises(ValueError) as caught:
-        Settings(**kwargs)
+        Settings(auth_mode="manual", **kwargs)
     assert "test-only" not in str(caught.value)
     assert "non-ascii" not in str(caught.value)
 
@@ -51,4 +53,29 @@ def test_invalid_configuration_is_rejected_without_echoing_values(kwargs):
 def test_bad_environment_is_explicit(monkeypatch, name, value):
     monkeypatch.setenv(name, value)
     with pytest.raises(ValueError, match=name):
+        Settings.from_env()
+
+
+@pytest.mark.parametrize("key", ["stale-key", "broken key\r\nvalue", "non-ascii-é", ""])
+def test_auto_ignores_the_entire_stale_environment_key(monkeypatch, key):
+    monkeypatch.setenv("DATAJUD_AUTH_MODE", "auto")
+    monkeypatch.setenv("DATAJUD_API_KEY", key)
+    settings = Settings.from_env()
+    assert settings.auth_mode == "auto"
+    assert settings.api_key == ""
+    assert "stale" not in repr(settings)
+
+
+@pytest.mark.parametrize("mode", ["", "automatic", "other", None])
+def test_unknown_auth_modes_are_rejected(mode):
+    with pytest.raises(ValueError, match="DATAJUD_AUTH_MODE"):
+        Settings(auth_mode=mode)
+
+
+def test_auth_mode_can_be_set_explicitly_in_environment(monkeypatch):
+    monkeypatch.setenv("DATAJUD_AUTH_MODE", "manual")
+    monkeypatch.setenv("DATAJUD_API_KEY", "test-only-key")
+    assert Settings.from_env().api_key == "test-only-key"
+    monkeypatch.setenv("DATAJUD_AUTH_MODE", "bad-mode")
+    with pytest.raises(ValueError, match="DATAJUD_AUTH_MODE"):
         Settings.from_env()

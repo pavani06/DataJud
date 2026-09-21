@@ -10,9 +10,8 @@ import pytest
 pytestmark = [
     pytest.mark.integration,
     pytest.mark.skipif(
-        os.getenv("DATAJUD_INTEGRATION_TEST") != "1"
-        or not os.getenv("DATAJUD_API_KEY", "").strip(),
-        reason="Opt in with DATAJUD_INTEGRATION_TEST=1 and DATAJUD_API_KEY",
+        os.getenv("DATAJUD_INTEGRATION_TEST") != "1",
+        reason="Opt in with DATAJUD_INTEGRATION_TEST=1 (fetches the official public key)",
     ),
 ]
 
@@ -23,7 +22,7 @@ def test_live_tjsp_preserves_raw_and_provenance(tmp_path: Path) -> None:
     from app.models import SearchRequest
 
     result = DataJudService(
-        Settings(api_key=os.environ["DATAJUD_API_KEY"], data_dir=tmp_path)
+        Settings(auth_mode="auto", data_dir=tmp_path)
     ).search(SearchRequest(tribunal="TJSP", size=1))
 
     assert result["query_status"] == "success"

@@ -12,11 +12,16 @@ class Settings:
     timeout_seconds: float = 30
     data_dir: Path = Path("data")
     max_retries: int = 2
+    auth_mode: str = "auto"
 
     def __post_init__(self) -> None:
+        if not isinstance(self.auth_mode, str) or self.auth_mode.strip().lower() not in ("auto", "manual"):
+            raise ValueError("DATAJUD_AUTH_MODE deve ser auto ou manual.")
+        object.__setattr__(self, "auth_mode", self.auth_mode.strip().lower())
         if not isinstance(self.api_key, str):
             raise ValueError("DATAJUD_API_KEY deve ser texto.")
-        key = self.api_key.strip()
+        # Auto must not depend on the shape or value of a stale environment key.
+        key = self.api_key.strip() if self.auth_mode == "manual" else ""
         if any(ord(char) < 33 or ord(char) > 126 for char in key):
             raise ValueError("DATAJUD_API_KEY contém caracteres inválidos.")
         object.__setattr__(self, "api_key", key)
@@ -50,4 +55,5 @@ class Settings:
             timeout_seconds=timeout,
             data_dir=os.getenv("DATAJUD_DATA_DIR", "data"),
             max_retries=retries,
+            auth_mode=os.getenv("DATAJUD_AUTH_MODE", "auto"),
         )
