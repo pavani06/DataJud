@@ -46,7 +46,11 @@
     "closing_commit": "77b23e59df0b537d7815f747e3a60c19b9fdfbb8",
     "remote": "https://github.com/pavani06/DataJud/tree/claude/relaxed-ride-ps2v6m",
     "pull_request": "https://github.com/pavani06/DataJud/pull/15",
-    "pull_request_state": "open"
+    "pull_request_state": "merged",
+    "merge_commit": "89170aafbc4fc4e7e07c59837e6055dcd1b8809f",
+    "merge_method": "merge commit, preserving the recorded commit hashes",
+    "merged_at": "2026-09-21",
+    "remote_branch": "kept after merge; deletion from the session was refused by the git proxy (HTTP 403)"
   },
   "deviations": [
     "GitHub epic/issues not created; local plan and state per authorized simplification",
